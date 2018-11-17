@@ -13,6 +13,8 @@ public class DeepanoApiFactory {
     public static native int netProc(String blobPath);
 
     static {
-        System.loadLibrary("dpAndroidApi");
+        //System.loadLibrary("dpAndroidApi");
+        System.loadLibrary("dpnusb");
+        System.loadLibrary("native-lib");
     }
 }

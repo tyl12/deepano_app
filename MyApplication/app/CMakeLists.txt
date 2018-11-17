@@ -17,7 +17,20 @@ add_library( # Sets the name of the library.
              SHARED
 
              # Provides a relative path to your source file(s).
-             src/main/cpp/native-lib.cpp )
+             src/main/cpp/dpnJniEntry.cpp )
+
+
+add_library(
+        dpnusb
+        SHARED
+        src/main/jniLibs/${ANDROID_ABI}/libdpnusb.so)
+
+set_target_properties(dpnusb PROPERTIES LINKER_LANGUAGE CXX)
+
+#add_library(avformat-57 SHARED IMPORTED)
+#set_target_properties(avformat-57 PROPERTIES IMPORTED_LOCATION
+#        ${ffmpeg_DIR}/lib/${ANDROID_ABI}/libavformat-57.so)
+
 
 # Searches for a specified prebuilt library and stores the path as a
 # variable. Because CMake includes system libraries in the search path by
@@ -38,6 +51,7 @@ find_library( # Sets the name of the path variable.
 
 target_link_libraries( # Specifies the target library.
                        native-lib
+                        dpnusb
 
                        # Links the target library to the log library
                        # included in the NDK.
