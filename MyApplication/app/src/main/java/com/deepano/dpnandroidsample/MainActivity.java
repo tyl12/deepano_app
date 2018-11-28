@@ -123,19 +123,24 @@ public class MainActivity extends AppCompatActivity {
                                         Log.e(TAG, "##@@## error: permission granted for unmatched device, skip");
                                         return;
                                     }
+                                    final UsbDeviceConnection connection = usbManager.openDevice(usbDevice);
 
-                                    
+                                    new Thread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            if (connection != null) {
+                                                String path =
+                                                        Environment.getExternalStorageDirectory().getPath() + "/SSD_MobileNet_object.blob";
 
-                                    UsbDeviceConnection connection = usbManager.openDevice(usbDevice);
-                                    if (connection != null) {
-                                        String path =
-                                                Environment.getExternalStorageDirectory().getPath()+"/SSD_MobileNet_object.blob";
-                                        fd = connection.getFileDescriptor();
-                                        DeepanoApiFactory.initDevice(fd);
-                                        //DeepanoApiFactory.startCamera();
-                                        DeepanoApiFactory.netProc(path);
-                                    } else
-                                        Log.e(TAG, "UsbManager openDevice failed");
+                                                fd = connection.getFileDescriptor();
+                                                DeepanoApiFactory.initDevice(fd);
+                                                //DeepanoApiFactory.startCamera();
+                                                DeepanoApiFactory.netProc(path);
+                                            }
+                                            else
+                                                Log.e(TAG, "UsbManager openDevice failed");
+                                        }
+                                    }).start();
                                 }
                             } else {
                                 Log.e(TAG, "permission is denied");
