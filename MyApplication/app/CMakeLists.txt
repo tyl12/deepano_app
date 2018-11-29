@@ -37,15 +37,21 @@ set_target_properties(
 
 
 add_library( # Sets the name of the library.
-             native-lib
+        native-lib
 
-             # Sets the library as a shared library.
-             SHARED
+        # Sets the library as a shared library.
+        SHARED
 
-             # Provides a relative path to your source file(s).
-             src/main/cpp/dpnJniEntry.cpp )
+        # Provides a relative path to your source file(s).
+        src/main/cpp/dpnJniEntry.cpp
+        )
 
 
+target_include_directories(
+        native-lib
+        PRIVATE
+        ${CMAKE_SOURCE_DIR}/src/main/cpp
+        )
 
 #add_library(avformat-57 SHARED IMPORTED)
 #set_target_properties(avformat-57 PROPERTIES IMPORTED_LOCATION
@@ -63,7 +69,8 @@ find_library( # Sets the name of the path variable.
 
         # Specifies the name of the NDK library that
         # you want CMake to locate.
-        log )
+        log
+        )
 
 # Specifies libraries CMake should link to your target library. You
 # can link multiple libraries, such as libraries you define in this
@@ -76,6 +83,5 @@ target_link_libraries( # Specifies the target library.
         # Links the target library to the log library
         # included in the NDK.
         lib_dpnusb
-#        lib_test
         ${log-lib}
         )
