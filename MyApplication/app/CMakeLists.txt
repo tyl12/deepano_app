@@ -10,6 +10,32 @@ cmake_minimum_required(VERSION 3.4.1)
 # You can define multiple libraries, and CMake builds them for you.
 # Gradle automatically packages shared libraries with your APK.
 
+
+#add_library(
+#        lib_test
+#        SHARED
+#        IMPORTED
+#        )
+#set_target_properties(
+#        lib_test
+#        PROPERTIES IMPORTED_LOCATION
+#        ${CMAKE_SOURCE_DIR}/distribution/libs/${ANDROID_ABI}/libtest.so
+#        )
+
+
+
+add_library(
+        lib_dpnusb
+        SHARED
+        IMPORTED
+        )
+set_target_properties(
+        lib_dpnusb
+        PROPERTIES IMPORTED_LOCATION
+        ${CMAKE_SOURCE_DIR}/distribution/libs/${ANDROID_ABI}/libdpnusb.so
+        )
+
+
 add_library( # Sets the name of the library.
              native-lib
 
@@ -20,12 +46,6 @@ add_library( # Sets the name of the library.
              src/main/cpp/dpnJniEntry.cpp )
 
 
-add_library(
-        dpnusb
-        SHARED
-        src/main/jniLibs/${ANDROID_ABI}/libdpnusb.so)
-
-set_target_properties(dpnusb PROPERTIES LINKER_LANGUAGE CXX)
 
 #add_library(avformat-57 SHARED IMPORTED)
 #set_target_properties(avformat-57 PROPERTIES IMPORTED_LOCATION
@@ -39,20 +59,23 @@ set_target_properties(dpnusb PROPERTIES LINKER_LANGUAGE CXX)
 # completing its build.
 
 find_library( # Sets the name of the path variable.
-              log-lib
+        log-lib
 
-              # Specifies the name of the NDK library that
-              # you want CMake to locate.
-              log )
+        # Specifies the name of the NDK library that
+        # you want CMake to locate.
+        log )
 
 # Specifies libraries CMake should link to your target library. You
 # can link multiple libraries, such as libraries you define in this
 # build script, prebuilt third-party libraries, or system libraries.
 
 target_link_libraries( # Specifies the target library.
-                       native-lib
-                        dpnusb
+        native-lib
 
-                       # Links the target library to the log library
-                       # included in the NDK.
-                       ${log-lib} )
+
+        # Links the target library to the log library
+        # included in the NDK.
+        lib_dpnusb
+#        lib_test
+        ${log-lib}
+        )
