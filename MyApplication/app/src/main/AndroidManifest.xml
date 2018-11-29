@@ -2,8 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.deepano.dpnandroidsample">
 
-    <uses-feature android:name="android.hardware.usb.accessory" />
-    <uses-feature android:name="android.hardware.usb.host" />
+    <uses-feature android:name="android.hardware.usb.host"  android:required="true"/>
+    <!--<uses-permission android:name="android.permission.HARDWARE_TEST" />-->
 
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
@@ -18,32 +18,34 @@
 
         <uses-library android:name="com.android.future.usb.accessory" />
 
-        <activity android:name=".MainActivity">
+        <activity android:name=".MainActivity"
+            android:launchMode="singleInstance">
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-            <intent-filter>
-                <action android:name="android.hardware.usb.action.USB_ACCESSORY_ATTACHED" />
-            </intent-filter>
-            <meta-data
-                android:name="android.hardware.usb.action.USB_ACCESSORY_ATTACHED"
-                android:resource="@xml/accessory_filter" />
+            <!--<intent-filter>-->
+                <!--<action android:name="android.hardware.usb.action.USB_ACCESSORY_ATTACHED" />-->
 
-            <intent-filter>
-                <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
-            </intent-filter>
-            <meta-data
-                android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
-                android:resource="@xml/device_filter" />
+                <!--<meta-data-->
+                    <!--android:name="android.hardware.usb.action.USB_ACCESSORY_ATTACHED"-->
+                    <!--android:resource="@xml/accessory_filter" />-->
+            <!--</intent-filter>-->
 
-            <intent-filter>
-                <action android:name="android.hardware.usb.action.USB_ACCESSORY_DETECHED" />
-                <action android:name="android.hardware.usb.action.USB_DEVICE_DETECHED" />
-            </intent-filter>
+            <!--<intent-filter>-->
+                <!--<action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />-->
+            <!--</intent-filter>-->
 
+            <!--<meta-data-->
+                <!--android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"-->
+                <!--android:resource="@xml/device_filter" />-->
+
+            <!--<intent-filter>-->
+                <!--<action android:name="android.hardware.usb.action.USB_ACCESSORY_DETECHED" />-->
+                <!--<action android:name="android.hardware.usb.action.USB_DEVICE_DETECHED" />-->
+            <!--</intent-filter>-->
 
         </activity>
     </application>
