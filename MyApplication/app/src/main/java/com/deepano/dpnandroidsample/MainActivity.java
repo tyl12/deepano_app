@@ -42,6 +42,10 @@ public class MainActivity extends AppCompatActivity {
 
     private int fd = -1;
 
+    private DeepanoGLView deepanoGLView = null;
+
+    private DeepanoApiFactory apiFactory = null;
+
     boolean verifyDevice(UsbDevice device){
         Log.d(TAG, "verifyDevice : " + device.getVendorId() + ", " + device.getProductId());
         if (device.getVendorId() != 1038 || device.getProductId() != 63035)
@@ -105,9 +109,9 @@ public class MainActivity extends AppCompatActivity {
                     String path = Environment.getExternalStorageDirectory().getPath() + "/SSD_MobileNet_object.blob";
 
                     fd = mConnection.getFileDescriptor();
-                    DeepanoApiFactory.initDevice(fd);
+                    apiFactory.initDevice(fd);
                     //DeepanoApiFactory.startCamera();
-                    DeepanoApiFactory.netProc(path);
+                    apiFactory.netProc(path);
                 } else
                     Log.e(TAG, "UsbManager openDevice failed");
             }
@@ -137,6 +141,9 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         Log.d(TAG, "onCreate start");
         setContentView(R.layout.activity_main);
+
+        deepanoGLView = findViewById(R.id.deepano_gl_view);
+        apiFactory = DeepanoApiFactory.getApiInstance(deepanoGLView);
 
         isStoragePermissionGranted();
 
