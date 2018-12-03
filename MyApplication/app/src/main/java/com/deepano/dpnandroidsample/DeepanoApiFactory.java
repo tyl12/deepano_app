@@ -12,6 +12,8 @@ public class DeepanoApiFactory {
 
     public static native int netProc(String blobPath);
 
+    public static native int deinitDevice(int fd);
+
     static {
         //System.loadLibrary("dpAndroidApi");
         System.loadLibrary("dpnusb");

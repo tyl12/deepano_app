@@ -22,6 +22,12 @@ Java_com_deepano_dpnandroidsample_DeepanoApiFactory_initDevice(
         jobject /* this */,jint fd);
 
 JNIEXPORT jint JNICALL
+Java_com_deepano_dpnandroidsample_DeepanoApiFactory_deinitDevice(
+        JNIEnv *env,
+        jobject /* this */,jint fd);
+
+
+JNIEXPORT jint JNICALL
 Java_com_deepano_dpnandroidsample_DeepanoApiFactory_startCamera(
         JNIEnv *env,
         jobject /* this */);
@@ -176,6 +182,7 @@ void video_callback(dp_img_t *img, void *param){
 
 void box_callback_model_demo(void *result,void *param){
     ALOGD("%s E", __FUNCTION__);
+    return;
     DP_MODEL_NET model = *((DP_MODEL_NET*)param);
     // i have a bug here,can not fetch the right param,this is a movidius system bug,i will fix it later.
     //if( model == DP_SSD_MOBILI_NET){
@@ -274,3 +281,14 @@ Java_com_deepano_dpnandroidsample_DeepanoApiFactory_netProc(
     env->ReleaseStringUTFChars(blobPath,path);
     return 0;
 }
+
+
+JNIEXPORT jint JNICALL
+Java_com_deepano_dpnandroidsample_DeepanoApiFactory_deinitDevice(
+        JNIEnv *env,
+        jobject /* this */,jint fd) {
+    dp_send_stop_cmd();
+
+    dp_uninit();
+}
+

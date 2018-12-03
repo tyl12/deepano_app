@@ -36,10 +36,19 @@ public class MainActivity extends AppCompatActivity {
 
     private UsbManager usbManager = null;
     private PendingIntent mPermissionIntent = null;
-    List<UsbDevice> mDevices;
+    private List<UsbDevice> mDevices;
     private UsbDeviceConnection mConnection = null;
+    private Thread mThread = null;
 
     private int fd = -1;
+
+    boolean verifyDevice(UsbDevice device){
+        Log.d(TAG, "verifyDevice : " + device.getVendorId() + ", " + device.getProductId());
+        if (device.getVendorId() != 1038 || device.getProductId() != 63035)
+            return false;
+        Log.d(TAG, "Found matching device");
+        return true;
+    }
 
     private void scanDevices() {
         Log.d(TAG, "scanDevices E");
@@ -47,36 +56,30 @@ public class MainActivity extends AppCompatActivity {
         Iterator<UsbDevice> deviceIterator = deviceList.values().iterator();
         while (deviceIterator.hasNext()) {
             UsbDevice device = deviceIterator.next();
-            Log.d(TAG, "scanDevices : " + device.getVendorId() + ", " + device.getProductId());
-
-            if (device.getVendorId() != 1038 || device.getProductId() != 63035){
-                Log.d(TAG, "unmatched device, skip");
+            if (!verifyDevice(device))
                 continue;
-            }
-            Log.d(TAG, "found matched device, request permission");
+            Log.d(TAG, "Start to request usb permission");
             usbManager.requestPermission(device, mPermissionIntent);
+            break;//TODO: only one
         }
         Log.d(TAG, "scanDevices X");
     }
 
     private void deviceAttached(UsbDevice device) {
         Log.d(TAG, "deviceAttached E");
-        if (device.getVendorId() != 1038 || device.getProductId() != 63035){
-            Log.d(TAG, "unmatched device, skip");
+        if (!verifyDevice(device)){
             return;
         }
-        Log.d(TAG, "found matched device, request permission");
+        Log.d(TAG, "Start to request usb permission");
         usbManager.requestPermission(device, mPermissionIntent);
         Log.d(TAG, "deviceAttached X");
     }
 
     private void deviceDetached(UsbDevice device) {
         Log.d(TAG, "deviceDetached E");
-        if (device.getVendorId() != 1038 || device.getProductId() != 63035) {
-            Log.d(TAG, "unmatched device, skip");
+        if (!verifyDevice(device))
             return;
-        }
-        Log.d(TAG, "found matched device, remove it");
+
         UsbDevice dev = mDevices.get(0);
         if (dev.equals(device)){
             Log.e(TAG, "FOUND MATCHING DEV");
@@ -95,7 +98,7 @@ public class MainActivity extends AppCompatActivity {
         mConnection = usbManager.openDevice(usbDevice);
         mConnection.claimInterface(intf, forceClaim);
 
-        new Thread(new Runnable() {
+        mThread = new Thread(new Runnable() {
             @Override
             public void run() {
                 if (mConnection != null) {
@@ -108,7 +111,8 @@ public class MainActivity extends AppCompatActivity {
                 } else
                     Log.e(TAG, "UsbManager openDevice failed");
             }
-        }).start();
+        });
+        mThread.start();
     }
 
     public  boolean isStoragePermissionGranted() {
@@ -153,10 +157,28 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "onCreate stop");
     }
 
+    protected synchronized void destroyDevice(UsbDevice device){
+        //TODO: status check
+        fd = mConnection.getFileDescriptor();
+        DeepanoApiFactory.deinitDevice(fd);
+        destroyDevice(device);
+
+    }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
         unregisterReceiver(mUsbReceiver);
+        destroyDevice(mDevices.get(0));
+
+        if (mThread != null){
+            mThread.interrupt();
+            try {
+                mThread.join();
+            } catch (InterruptedException e) {
+                Log.d(TAG, e.toString());
+            }
+        }
     }
 
     @Override
@@ -182,31 +204,18 @@ public class MainActivity extends AppCompatActivity {
                             UsbDevice usbDevice = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
                             if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
                                 if (usbDevice != null) {
-//                                    Log.e(TAG,  "##@@## => " + usbDevice.getDeviceName() + " " + Integer.toHexString(usbDevice.getVendorId()) +
-//                                            " " + Integer.toHexString(usbDevice.getProductId()) + " " + usbDevice.getDeviceClass() + " " + usbDevice.getDeviceSubclass() );
+                                    if (!verifyDevice(usbDevice))
+                                        return;
+                                    Log.d(TAG, "Usb Permission Granted");
+                                    Log.d(TAG, usbDevice.toString());
                                     Toast.makeText(context, "ACTION_USB_PERMISSION: grant permission for:" + Integer.toHexString(usbDevice.getVendorId()) + " : " + Integer.toHexString(usbDevice.getProductId()),
                                             Toast.LENGTH_LONG).show();
-
-                                    if (usbDevice.getVendorId() != 1038 || usbDevice.getProductId() != 63035){
-                                        Log.e(TAG, "##@@## error: permission granted for unmatched device, skip");
-                                        return;
-                                    }
-                                    Log.d(TAG, "add device to mDevices list");
-                                    Log.d(TAG, usbDevice.toString());
-
                                     mDevices.add(usbDevice);
                                     processDevice(usbDevice);
                                 }
                             } else {
-                                Log.e(TAG, "permission is denied");
-                                Toast.makeText(context, "用户不允许USB访问设备，程序退出！", Toast.LENGTH_LONG).show();
-                                try {
-                                    Thread.sleep(2000);
-                                } catch (InterruptedException e) {
-                                    e.printStackTrace();
-                                }
-
-                                finish();
+                                Log.e(TAG, "Usb Permission Denied");
+                                Toast.makeText(context, "用户不允许USB访问设备", Toast.LENGTH_LONG).show();
                             }
                         }
                         break;
@@ -215,7 +224,6 @@ public class MainActivity extends AppCompatActivity {
                         Log.d(TAG, "ACTION_USB_DEVICE_ATTACHED : " + usbDevice.getVendorId() + ", " + usbDevice.getProductId());
                         Toast.makeText(context, "ACTION_USB_DEVICE_ATTACHED", Toast.LENGTH_LONG).show();
                         deviceAttached(usbDevice);
-
                         break;
                     }
                     case UsbManager.ACTION_USB_DEVICE_DETACHED: {
